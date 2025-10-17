@@ -1,0 +1,16 @@
+{
+  "company": "Chiliz",
+  "role": "Product Owner",
+  "start": "2023-06-01",
+  "end": null,
+  "current": false,
+  "location": "Remote",
+  "summary": "Launched a one-to-one live auction integration for sports items like Jerseys and Balls, allowing users to participate in auctions by biding using Chiliz. Initiated several automations.",
+  "tags": [
+    "Integration",
+    "B2C",
+    "UX",
+    "Blockchain"
+  ],
+  "order": 0
+}

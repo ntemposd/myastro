@@ -1,0 +1,66 @@
+[
+  {
+    "company": "Clio Muse Tours",
+    "role": "Senior Product Manager",
+    "start": "2023-12-01",
+    "end": null,
+    "current": true,
+    "location": "Remote",
+    "summary": "Driving automation and scalability in business operations. Building  internal tools for real-time Income Statement, Cash Flow, and Expense Tracking, backed by ERP integrations and Bank APIs.",
+    "tags": [
+      "Integration",
+      "Data",
+      "Finance",
+      "Internal Tools"
+    ],
+    "order": 0
+  },
+  {
+    "company": "Chiliz",
+    "role": "Product Owner",
+    "start": "2023-06-01",
+    "end": null,
+    "current": false,
+    "location": "Remote",
+    "summary": "Launched a one-to-one live auction integration for sports items like Jerseys and Balls, allowing users to participate in auctions by biding using Chiliz. Initiated several automations.",
+    "tags": [
+      "Integration",
+      "B2C",
+      "UX",
+      "Blockchain"
+    ],
+    "order": 0
+  },
+  {
+    "company": "100mentors",
+    "role": "Product Owner",
+    "start": "2022-12-13",
+    "end": null,
+    "current": false,
+    "location": "Remote",
+    "summary": "Worked with the 100mentors leadership team to establish product management processes and build the roadmap for a fresh GenAI-powered product.",
+    "tags": [
+      "Integration",
+      "AI",
+      "B2B",
+      "UX"
+    ],
+    "order": 0
+  },
+  {
+    "company": "Wappier",
+    "role": "Product Manager",
+    "start": "2019-07-13",
+    "end": null,
+    "current": false,
+    "location": "Hybrid",
+    "summary": "Rotated through a portfolio of wappier integrations within casual mobile games. The goal was to enhance retention, elevate user engagement, and increase AARPU.",
+    "tags": [
+      "Integration",
+      "ML",
+      "Gaming",
+      "B2B"
+    ],
+    "order": 0
+  }
+]

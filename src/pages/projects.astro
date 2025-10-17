@@ -1,0 +1,91 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+
+// higher order first
+const projects = (await getCollection('projects')).sort(
+  (a, b) => (b.data.order ?? 0) - (a.data.order ?? 0)
+);
+
+// Grab all rasters you placed under src/assets/projects
+const rasters = import.meta.glob('../assets/projects/*.{png,jpg,jpeg,webp,avif}', { eager: true });
+
+// Resolve by **basename only**, so frontmatter like "/notion/projects/foo.webp" finds "foo.png/webp/avif"
+const resolveAsset = (pathStr: string) => {
+  const base = pathStr.split('/').pop()?.replace(/\.[^.]+$/, '');
+  if (!base) return null;
+  for (const [k, mod] of Object.entries(rasters)) {
+    if (new RegExp(`/${base}\\.(png|jpe?g|webp|avif)$`, 'i').test(k)) {
+      // @ts-ignore - Vite default export is the asset URL/metadata
+      return (mod as any).default ?? mod;
+    }
+  }
+  return null;
+};
+
+const WIDTHS = [480, 768, 1024, 1440];
+const SIZES = '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw';
+
+// eager strategy: first 6 images always eager
+const isEager = (i: number) => i < 6;
+---
+
+<Layout title="Projects — Dimitrios Ntempos">
+  <section class="mb-12">
+    <h1 class="text-3xl font-bold mb-2 text-gray-900">Projects</h1>
+    <p class="text-gray-700 mb-10 max-w-3xl">
+      A few highlights from the last years — products, tools, and experiments I’ve built or led.
+    </p>
+
+    <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        projects.map((p, i) => {
+          const external = p.data.link?.startsWith('http');
+          const tags = Array.isArray(p.data.tags) ? p.data.tags : [];
+          const src = resolveAsset(String(p.data.image));
+          const eager = isEager(i);
+
+          return (
+            <a
+              href={p.data.link}
+              target={external ? '_blank' : undefined}
+              rel={external ? 'noopener noreferrer' : undefined}
+              class="group block rounded-2xl bg-white border border-gray-100 overflow-hidden
+                     shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+            >
+              <div class="aspect-[4/3] overflow-hidden p-6 bg-gray-50">
+                {src ? (
+                  <Image
+                    src={src}
+                    alt={p.data.title}
+                    widths={WIDTHS}
+                    sizes={SIZES}
+                    loading={eager ? 'eager' : 'lazy'}
+                    fetchpriority={i === 0 ? 'high' : (eager ? 'low' : 'low')}
+                    decoding="async"
+                    class="w-full h-full object-contain group-hover:scale-100 transition-transform duration-300 ease-out"
+                  />
+                ) : (
+                  <div class="w-full h-full grid place-items-center text-gray-400 text-sm">
+                    No image
+                  </div>
+                )}
+              </div>
+
+              <div class="p-5">
+                <h2 class="text-lg font-semibold mb-2 text-gray-900">{p.data.title}</h2>
+                <p class="text-gray-700 text-sm mb-3 leading-relaxed">{p.data.blurb}</p>
+                <div class="flex flex-wrap gap-2">
+                  {tags.map((t) => (
+                    <span class="text-xs bg-gray-100 px-2 py-1 rounded-md text-gray-600">{t}</span>
+                  ))}
+                </div>
+              </div>
+            </a>
+          );
+        })
+      }
+    </div>
+  </section>
+</Layout>

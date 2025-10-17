@@ -1,0 +1,80 @@
+---
+const { postTitle, postUrl } = Astro.props;
+
+const finalUrl = postUrl ?? new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).toString();
+
+const encodedTitle = encodeURIComponent(postTitle);
+const encodedUrl = encodeURIComponent(finalUrl);
+
+const networks = [
+  { name: 'X', href: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}` },
+  { name: 'LinkedIn', href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}` },
+  { name: 'Reddit', href: `https://www.reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}` },
+  { name: 'Telegram', href: `https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}` },
+  { name: 'WhatsApp', href: `https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}` },
+  { name: 'Email', href: `mailto:?subject=${encodedTitle}&body=${encodedUrl}` },
+];
+---
+
+<div class="mt-8 border-t pt-6">
+  <h3 class="text-sm font-semibold text-gray-600 mb-3">Share this post</h3>
+  <div class="flex flex-wrap gap-2">
+    <!-- Native Share -->
+    <button
+      id="native-share"
+      type="button"
+      class="rounded-lg border px-3 py-1.5 text-sm hover:bg-gray-50 transition"
+    >
+      Share
+    </button>
+
+    <!-- Copy link -->
+    <button
+      id="copy-link"
+      type="button"
+      class="rounded-lg border px-3 py-1.5 text-sm hover:bg-gray-50 transition"
+      data-url={finalUrl}
+    >
+      Copy link
+    </button>
+
+    <!-- Classic social links -->
+    {
+      networks.map((n) => (
+        <a
+          href={n.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="rounded-lg border px-3 py-1.5 text-sm hover:bg-gray-50 transition"
+        >
+          {n.name}
+        </a>
+      ))
+    }
+  </div>
+
+  <script>
+    const shareBtn = document.getElementById('native-share');
+    const copyBtn = document.getElementById('copy-link');
+
+    if (!('share' in navigator)) shareBtn?.remove();
+    else {
+      shareBtn?.addEventListener('click', async () => {
+        try {
+          await navigator.share({ title: '{postTitle}', url: '{finalUrl}' });
+        } catch {}
+      });
+    }
+
+    copyBtn?.addEventListener('click', async () => {
+      const u = copyBtn.getAttribute('data-url');
+      try {
+        await navigator.clipboard.writeText(u);
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => (copyBtn.textContent = 'Copy link'), 1500);
+      } catch {
+        window.prompt('Copy this link:', u);
+      }
+    });
+  </script>
+</div>

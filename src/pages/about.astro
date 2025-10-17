@@ -1,0 +1,239 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Image } from 'astro:assets';
+import experience from '../content/experience/_ordered.json';
+
+// ✅ Local portrait as a real asset (no CLS, optimized)
+import portrait from '../assets/personal.jpg';
+
+const fmtMY = (iso) =>
+  iso ? new Date(iso).toLocaleString('en-US', { month: 'short', year: 'numeric' }) : '';
+
+const cardBase = 'rounded-2xl bg-white border border-gray-100 overflow-hidden shadow-sm transition-all duration-300';
+const card = `${cardBase} hover:shadow-lg hover:-translate-y-1 p-5`;
+---
+
+<Layout
+  title="About — Dimitrios Ntempos"
+  description="Dimitri (Dimitrios Ntempos) — Technical Product Manager and Builder connecting systems, data, and people."
+>
+  <!-- Opportunistic prefetch for likely next pages -->
+  <link rel="prefetch" href="/projects" />
+  <link rel="prefetch" href="/writing" />
+
+  <article>
+    <!-- Intro -->
+    <section class="mb-4" aria-labelledby="about">
+      <div class="flex flex-col-reverse md:flex-row items-center md:items-start gap-8">
+        <!-- Text -->
+        <div class="flex-1">
+          <h1 id="about" class="text-3xl font-bold mb-1 text-gray-900">More about me</h1>
+          <p class="text-gray-700 font-semibold text-lg mb-3">
+            Driven by curiosity — blending Economics, Informatics, and human systems.
+          </p>
+          <p class="text-gray-700 leading-relaxed mb-4 max-w-2xl">
+            I’ve always been drawn to understanding how things work, in both science and systems. My
+            curiosity started with <strong>🧪Chemistry</strong>, where I first learned how physical
+            elements interact, then moved to <strong>🏦Economics</strong>, where I studied how modern
+            society is fueled and markets behave, and finally to <strong>💻Informatics</strong>, where
+            I learned how technology connects it all together in a digital universe.
+          </p>
+        </div>
+
+        <!-- Portrait (local Image) -->
+        <div data-no-invert class="flex-shrink-0">
+          <Image
+            src={portrait}
+            alt="Portrait of Dimitrios Ntempos"
+            width={260}
+            height={260}
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+            class="w-52 h-52 md:w-60 md:h-60 rounded-full object-cover border-4 border-white shadow-md"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- Values -->
+    <section class="mb-4" aria-labelledby="values">
+      <h2 id="values" class="text-2xl font-semibold mb-3">Values</h2>
+      <p class="text-gray-700 mb-6">
+        After working with cross-functional and international teams, I’ve come to believe that people and
+        culture shape every outcome. Finding the right mix of the elements below can make any organization
+        thrive.
+      </p>
+      <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div class={card}>
+          <h3 class="text-lg font-semibold mb-2">Simplicity</h3>
+          <p class="text-gray-600 text-sm leading-relaxed mb-3">
+            Clear systems lead to clear thinking — build less, mean more.
+          </p>
+        </div>
+        <div class={card}>
+          <h3 class="text-lg font-semibold mb-2">Transparency</h3>
+          <p class="text-gray-600 text-sm leading-relaxed mb-3">
+            Open context drives better alignment and trust.
+          </p>
+        </div>
+        <div class={card}>
+          <h3 class="text-lg font-semibold mb-2">Community</h3>
+          <p class="text-gray-600 text-sm leading-relaxed mb-3">
+            Diverse perspectives create stronger products and teams.
+          </p>
+        </div>
+        <div class={card}>
+          <h3 class="text-lg font-semibold mb-2">Craftsmanship</h3>
+          <p class="text-gray-600 text-sm leading-relaxed mb-3">
+            Take ownership, responsibility, and aim for quality.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Craftsmanship -->
+    <section class="mb-4" aria-labelledby="professional">
+      <h2 id="professional" class="text-2xl font-semibold mb-3">Craftsmanship</h2>
+      <p class="text-gray-700 mb-6">
+        I’ve spent the past decade in product management, helping tech startups and early-stage scaleups to design and launch better systems, automate workflows, and turn insights into impact. I enjoy projects that live at the intersection of product, data, and operations.
+      </p>
+
+      <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div class={card}>
+          <h3 class="text-lg font-semibold mb-2">Turning data into decisions</h3>
+          <p class="text-gray-600 text-sm leading-relaxed mb-3">
+            Building pipelines to harvest data that inform strategy.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#SQL</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#Plotly</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#Sheets</span>
+          </div>
+        </div>
+
+        <div class={card}>
+          <h3 class="text-lg font-semibold mb-2">Systems &amp; integrations</h3>
+          <p class="text-gray-600 text-sm leading-relaxed mb-3">
+            Connecting services seamlessly across platforms.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#APIs</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#Webhooks</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#Sockets</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#SDK</span>
+          </div>
+        </div>
+
+        <div class={card}>
+          <h3 class="text-lg font-semibold mb-2">Documentation that guides</h3>
+          <p class="text-gray-600 text-sm leading-relaxed mb-3">
+            Writing readable docs that keep teams aligned.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#Notion</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#Jira</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#Aha</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#Docs</span>
+          </div>
+        </div>
+
+        <div class={card}>
+          <h3 class="text-lg font-semibold mb-2">Automation and AI</h3>
+          <p class="text-gray-600 text-sm leading-relaxed mb-3">
+            Pair automation with clear guidance to scale outcomes.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#OpenAI</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#Python</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#Copilot</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#AppScript</span>
+          </div>
+        </div>
+
+        <div class={card}>
+          <h3 class="text-lg font-semibold mb-2">Advocating for UX</h3>
+          <p class="text-gray-600 text-sm leading-relaxed mb-3">
+            Sketching wireframes and user flows a lot. User centered design principles. Launching with empathy.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#Notion</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#Jira</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#Aha</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#Docs</span>
+          </div>
+        </div>
+
+        <div class={card}>
+          <h3 class="text-lg font-semibold mb-2">Agile minded and team-player</h3>
+          <p class="text-gray-600 text-sm leading-relaxed mb-3">
+            People over processes for the win.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#Notion</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#Jira</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#Aha</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#Docs</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Experience -->
+    <section class="mb-4" aria-labelledby="experience">
+      <h2 id="experience" class="text-2xl font-semibold mb-3">Experience</h2>
+      <p class="text-gray-700 mb-6">
+        I’ve spent the past decade in product management as an independent contractor who helps tech startups and early-stage scaleups to design and launch better systems,
+        automate workflows, and turn insights into impact. I enjoy projects that live at the intersection of product, data, and operations.
+      </p>
+
+      <ul class="grid gap-8 sm:grid-cols-2">
+        {experience.map((item, i) => (
+          <li key={(item.role || item.company) + i} class={card}>
+            <!-- Title + Current badge -->
+            <div class="flex items-center gap-2">
+              <h3 class="text-base font-bold text-gray-900">{item.role || '—'}</h3>
+              {item.current && (
+                <span class="text-[10px] uppercase tracking-wide bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">
+                  Current
+                </span>
+              )}
+            </div>
+
+            <!-- Company + Date -->
+            <p class="text-xs text-gray-600 mt-1">
+              <span class="font-semibold text-gray-700">{item.company}</span>
+              {item.start && <span>{' • '}{fmtMY(item.start)}</span>}
+              {item.location && <span>{' • '}{item.location}</span>}
+            </p>
+
+            <!-- Tags -->
+            {item.tags?.length > 0 && (
+              <div class="flex flex-wrap gap-2 mt-3">
+                {item.tags.map((tag) => (
+                  <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md font-medium">#{tag}</span>
+                ))}
+              </div>
+            )}
+
+            <!-- Summary -->
+            {item.description && (
+              <p class="text-sm text-gray-600 mt-3 whitespace-pre-line">{item.description}</p>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      <div class="mt-6 flex justify-end">
+        <a
+          href="/projects"
+          class="inline-flex items-center justify-center px-4 py-2.5 rounded-full text-sm font-medium
+                 bg-indigo-600 text-white hover:bg-indigo-700 transition-colors
+                 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+        >
+          Request Full Resume →
+        </a>
+      </div>
+    </section>
+  </article>
+</Layout>

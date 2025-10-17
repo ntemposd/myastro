@@ -1,11 +1,317 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+// Local assets (under src/assets)
+import profile from '../assets/profile.png';
+
+/* ---------- Asset maps (local only) ---------- */
+const rasterMods = import.meta.glob('../assets/**/*.{png,jpg,jpeg,webp,avif}', { eager: true });
+const svgMods    = import.meta.glob('../assets/**/*.svg', { eager: true });
+
+const toBase = (p: string) => p.split('/').pop()!.replace(/\.[^.]+$/,'').toLowerCase();
+
+function buildMap(mods: Record<string, any>) {
+  const map = new Map<string, any>();
+  for (const [k, mod] of Object.entries(mods)) {
+    // raster modules export ImageMetadata at .default; svg exports a url string
+    const val = (mod as any).default ?? mod;
+    map.set(toBase(k), val);
+  }
+  return map;
+}
+
+const assetMap = new Map([...buildMap(rasterMods), ...buildMap(svgMods)]);
+
+function resolveLocal(pathStr?: string) {
+  if (!pathStr) return null;
+  const base = toBase(pathStr);
+  const asset = assetMap.get(base) ?? null;
+  const isSvg = typeof asset === 'string' && asset.endsWith('.svg');
+  return asset ? { asset, isSvg } : null;
+}
+
+/* ---------- Content fetch (sorted, filtered) ---------- */
+let posts = await getCollection('posts');
+posts = posts
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => {
+    const da = a.data.date instanceof Date ? a.data.date : new Date(a.data.date);
+    const db = b.data.date instanceof Date ? b.data.date : new Date(b.data.date);
+    return db.getTime() - da.getTime();
+  })
+  .slice(0, 3);
+
+let projects = await getCollection('projects');
+projects = projects
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => (b.data.order ?? 0) - (a.data.order ?? 0))
+  .slice(0, 3);
+
+/* ---------- Loading strategy ---------- */
+const PRELOAD_BUDGET = 6; // total across sections
+const eagerForIndex = (idx: number) => (idx < PRELOAD_BUDGET ? 'eager' : 'lazy');
+const priorityForIndex = (idx: number) => (idx < PRELOAD_BUDGET ? 'high' : 'auto');
+const isExternal = (href?: string) => !!href && /^https?:\/\//i.test(href);
+
+// Precompute a global index across project+post cards for consistent eager budget
+const totalCards = projects.length + posts.length;
+const cardGlobalIndex = (section: 'projects'|'posts', localIndex: number) =>
+  section === 'projects' ? localIndex : projects.length + localIndex;
+
+// Card image sizes: keep it tight for 3-col grid
+const CARD_WIDTHS = [480, 768, 1024]; // good spread, smaller payload
+const CARD_SIZES  = '(max-width: 1024px) 100vw, 600px';
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="Home — Dimitrios Ntempos">
+  <!-- Opportunistic prefetch for likely next pages -->
+  <link rel="prefetch" href="/projects" />
+  <link rel="prefetch" href="/writing" />
+
+  <!-- Hero -->
+  <section class="mb-4">
+    <div class="flex flex-col-reverse md:flex-row items-center md:items-start gap-8">
+      <div class="flex-1">
+        <h1 class="text-3xl font-bold mb-2 text-gray-900">Dimitrios Ntempos</h1>
+        <p class="text-lg font-semibold mb-2 text-gray-700">Technical Product Manager • Builder</p>
+        <p class="text-gray-600 max-w-2xl leading-relaxed mb-4">
+          Software Product Manager with 8+ years of experience designing lean, scalable systems that
+          connect apps, data, and people. Skilled in integrations, analytics, and user experience.
+          Working with products from concept to launch and optimizing them for growth.
+        </p>
+
+        <!-- Social Links -->
+        <div class="flex items-center gap-3 md:gap-4 mb-6">
+          <!-- GitHub -->
+          <a
+            href="https://github.com/ntemposd"
+            target="_blank" rel="noopener noreferrer" aria-label="GitHub"
+            class="group inline-flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm transition-all
+                     hover:-translate-y-0.5 hover:shadow-md hover:border-indigo-300 hover:bg-indigo-50
+                     focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+              class="h-7 w-7 text-slate-700 transition group-hover:text-indigo-600"
+              fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M15 22v-4a4 4 0 0 0-1-3c3 0 6-2 6-5.5a5.6 5.6 0 0 0-1.2-3.6c.2-1 .2-2.1 0-3.1-1.2.1-2.4.6-3.2 1.2a12.3 12.3 0 0 0-6 0c-.8-.6-2-1.1-3.2-1.2-.2 1-.2 2.1 0 3.1A5.6 5.6 0 0 0 4 9.5C4 13 7 15 10 15a4 4 0 0 0-1 3v4"/>
+              <path d="M9 18c-4 1.5-5-2-7-2"/>
+              <path d="M15 18c4 1.5 5-2 7-2"/>
+            </svg>
+          </a>
+
+          <!-- LinkedIn -->
+          <a
+            href="https://www.linkedin.com/in/"
+            target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"
+            class="group inline-flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm transition-all
+                     hover:-translate-y-0.5 hover:shadow-md hover:border-indigo-300 hover:bg-indigo-50
+                     focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+              class="h-7 w-7 text-slate-700 transition group-hover:text-indigo-600"
+              fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <line x1="7" y1="10" x2="7" y2="17"/>
+              <circle cx="7" cy="7" r="1.5"/>
+              <path d="M12 17v-4a2 2 0 0 1 4 0v4"/>
+            </svg>
+          </a>
+
+          <!-- Email -->
+          <a
+            href="mailto:hello@yourdomain.com"
+            aria-label="Email"
+            class="group inline-flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm transition-all
+                     hover:-translate-y-0.5 hover:shadow-md hover:border-indigo-300 hover:bg-indigo-50
+                     focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+              class="h-7 w-7 text-slate-700 transition group-hover:text-indigo-600"
+              fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect>
+              <path d="M3 7l9 6 9-6"></path>
+            </svg>
+          </a>
+
+          <!-- CTA -->
+          <a
+            href="/about"
+            class="inline-flex items-center justify-center px-4 py-2.5 rounded-full text-sm font-medium
+                   bg-indigo-600 text-white hover:bg-indigo-700 transition-colors
+                   focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+          >
+            More about me →
+          </a>
+        </div>
+      </div>
+
+      <!-- Portrait (local Image) -->
+      <div data-no-invert class="flex-shrink-0">
+        <Image
+          src={profile}
+          alt="Dimitrios Ntempos portrait"
+          width={260}
+          height={260}
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+          class="w-52 h-52 md:w-60 md:h-60 rounded-full object-cover border-4 border-white shadow-md"
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- Projects -->
+  <section id="projects" class="mt-4">
+    <h2 class="text-2xl font-bold mb-3">Projects</h2>
+    <p class="text-gray-700 mb-6 max-w-3xl">
+      A few things I’ve built — from end-to-end apps to data tools and small experiments.
+    </p>
+
+    <div class="grid md:grid-cols-3 gap-6">
+      {projects.map((p, i) => {
+        const gIdx = cardGlobalIndex('projects', i);
+        const resolved = resolveLocal(p.data.image as string | undefined);
+        const anchorRel = isExternal(p.data.link) ? 'noopener noreferrer' : undefined;
+
+        return (
+          <a
+            href={p.data.link}
+            target={isExternal(p.data.link) ? '_blank' : undefined}
+            rel={anchorRel}
+            class="group block rounded-2xl bg-white border border-gray-100 overflow-hidden
+                   shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+          >
+            <div data-no-invert class="aspect-[6/3] overflow-hidden bg-gray-50">
+              {resolved ? (
+                resolved.isSvg ? (
+                  // For SVGs, use plain <img> (no transforms), keeps file tiny.
+                  <img
+                    src={resolved.asset}
+                    alt={p.data.title ?? 'Project image'}
+                    loading={eagerForIndex(gIdx)}
+                    fetchpriority={priorityForIndex(gIdx)}
+                    decoding="async"
+                    class="w-full h-full object-contain p-6 group-hover:scale-102 transition-transform duration-300 ease-out"
+                  />
+                ) : (
+                  <Image
+                    src={resolved.asset}
+                    alt={p.data.title ?? 'Project image'}
+                    widths={CARD_WIDTHS}
+                    sizes={CARD_SIZES}
+                    loading={eagerForIndex(gIdx)}
+                    fetchpriority={priorityForIndex(gIdx)}
+                    decoding="async"
+                    class="w-full h-full object-contain p-6 group-hover:scale-102 transition-transform duration-300 ease-out"
+                  />
+                )
+              ) : (
+                <div class="w-full h-full grid place-items-center text-gray-400 text-sm">
+                  Image not found
+                </div>
+              )}
+            </div>
+
+            <div class="p-5">
+              <h3 class="text-lg font-semibold mb-2">{p.data.title}</h3>
+              <p class="text-gray-600 text-sm leading-relaxed mb-3">{p.data.blurb}</p>
+
+              {Array.isArray(p.data.tags) && p.data.tags.length > 0 && (
+                <div class="flex flex-wrap gap-2">
+                  {p.data.tags.map((t) => (
+                    <span class="text-xs bg-gray-100 px-2 py-1 rounded-md text-gray-600">{t}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </a>
+        );
+      })}
+    </div>
+
+    <div class="mt-6 flex justify-end">
+      <a href="/projects" class="inline-flex items-center justify-center px-4 py-2.5 rounded-full text-sm font-medium
+                 bg-indigo-600 text-white hover:bg-indigo-700 transition-colors
+                 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
+        View all projects →
+      </a>
+    </div>
+  </section>
+
+  <!-- Latest Writing -->
+  <section class="mt-4">
+    <h2 class="text-2xl font-bold mb-3">Writing</h2>
+    <p class="text-gray-700 mb-6 max-w-3xl">
+      Latest posts — I occasionally write posts but my notepads and my posts backlog is full.
+    </p>
+
+    {posts.length ? (
+      <div class="grid md:grid-cols-3 gap-6">
+        {posts.map((p, i) => {
+          const gIdx = cardGlobalIndex('posts', i);
+          const date = (p.data.date instanceof Date ? p.data.date : new Date(p.data.date)).toISOString().split('T')[0];
+          const coverPath = (p.data.image ?? p.data.cover) as string | undefined;
+          const resolved = resolveLocal(coverPath);
+
+          return (
+            <a
+              href={`/writing/${p.slug}/`}
+              class="group block rounded-2xl bg-white border border-gray-100 overflow-hidden
+                     shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+            >
+              <div data-no-invert class="aspect-[6/3] overflow-hidden bg-gray-50">
+                {resolved ? (
+                  resolved.isSvg ? (
+                    <img
+                      src={resolved.asset}
+                      alt={p.data.title ?? 'Post cover'}
+                      loading={eagerForIndex(gIdx)}
+                      fetchpriority={priorityForIndex(gIdx)}
+                      decoding="async"
+                      class="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300 ease-out"
+                    />
+                  ) : (
+                    <Image
+                      src={resolved.asset}
+                      alt={p.data.title ?? 'Post cover'}
+                      widths={CARD_WIDTHS}
+                      sizes={CARD_SIZES}
+                      loading={eagerForIndex(gIdx)}
+                      fetchpriority={priorityForIndex(gIdx)}
+                      decoding="async"
+                      class="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300 ease-out"
+                    />
+                  )
+                ) : (
+                  <div class="w-full h-full grid place-items-center text-gray-400 text-sm">No cover</div>
+                )}
+              </div>
+
+              <div class="p-5">
+                <h3 class="text-lg font-semibold mb-1">{p.data.title}</h3>
+                <p class="text-xs text-gray-500 mb-2">{date}</p>
+                {p.data.excerpt && (
+                  <p class="text-gray-600 text-sm leading-relaxed mb-3 line-clamp-3">{p.data.excerpt}</p>
+                )}
+                <span class="mt-2 inline-block text-sm underline">Read more →</span>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    ) : (
+      <p class="text-gray-500">No posts yet --- coming soon.</p>
+    )}
+
+    <div class="mt-6 flex justify-end">
+      <a href="/writing" class="inline-flex items-center justify-center px-4 py-2.5 rounded-full text-sm font-medium
+                 bg-indigo-600 text-white hover:bg-indigo-700 transition-colors
+                 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
+        View all posts →
+      </a>
+    </div>
+  </section>
 </Layout>

@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+/* DARK MODE: Global Inversion */
+html.dark {
+  filter: invert(1) hue-rotate(180deg) contrast(0.99) brightness(1.25);
+  color: #fff;
+}
+
+/* FIX: Restore images/media to normal appearance */
+html.dark img,
+html.dark video,
+html.dark picture,
+html.dark canvas {
+  filter: invert(1) hue-rotate(180deg) contrast(0.99);
+  mix-blend-mode: normal;
+}
+
+/* HARD FIX: opt out of inversion for any container (best for Astro <Image />) */
+html.dark [data-no-invert] {
+  filter: none !important;
+  mix-blend-mode: normal !important;
+}
+
+
+/* Optional dots overlay */
+.dots-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(#00000022 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: 0 0;
+  -webkit-mask-image: radial-gradient(#000 65%, transparent 85%);
+          mask-image: radial-gradient(#000 65%, transparent 85%);
+}
+
+/* Keep content above overlay */
+:where(header, main, footer) {
+  position: relative;
+  z-index: 10;
+}

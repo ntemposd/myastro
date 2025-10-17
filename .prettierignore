@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.build/
+.env
+.vscode/
+public/
+coverage/
+
+# Optional local editor settings
+*.local

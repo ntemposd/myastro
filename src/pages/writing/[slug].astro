@@ -1,0 +1,126 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import Share from '../../components/Share.astro';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('posts');
+  return entries.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
+}
+
+// helpers
+const normTags = (raw: unknown) =>
+  Array.isArray(raw)
+    ? raw
+    : typeof raw === 'string'
+      ? raw.split(',').map((t) => t.trim()).filter(Boolean)
+      : [];
+
+const isAstroImage = (img: unknown): img is ImageMetadata =>
+  !!img && typeof img === 'object' && 'src' in (img as any);
+
+// props
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+
+const isoDate = (entry.data.date instanceof Date ? entry.data.date : new Date(entry.data.date))
+  .toISOString()
+  .split('T')[0];
+
+const tags = normTags(entry.data.tags);
+
+// Prefer `image`, fall back to `cover`
+const rawCover = entry.data.image ?? entry.data.cover ?? null;
+
+// Resolve hero cover to ImageMetadata if it’s a string like "/posts/foo.png"
+const toBase = (p: string) => p.split('/').pop()!.toLowerCase();
+const postAssetMeta = import.meta.glob('../../assets/posts/*.{png,jpg,jpeg,webp,avif}', { eager: true });
+
+const metaByName = new Map<string, ImageMetadata>();
+for (const [k, v] of Object.entries(postAssetMeta)) {
+  const val = (v as any).default ?? v;
+  if (val) metaByName.set(toBase(k), val as ImageMetadata);
+}
+
+let cover: ImageMetadata | null = null;
+if (isAstroImage(rawCover)) {
+  cover = rawCover;
+} else if (typeof rawCover === 'string') {
+  cover = metaByName.get(toBase(rawCover)) ?? null;
+}
+
+const postUrl = new URL(Astro.url.pathname, (Astro.site ?? Astro.url.origin)).toString();
+
+// Map assets to hashed URLs for client-side rewrite of inline <img src="/posts/...">
+const postAssetUrls = import.meta.glob('../../assets/posts/*.{png,jpg,jpeg,webp,avif,svg}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+});
+const urlMap = Object.fromEntries(
+  Object.entries(postAssetUrls).map(([k, url]) => [toBase(k), url as string])
+);
+---
+
+<Layout
+  title={`${entry.data.title} — ntemposd`}
+  description={entry.data.excerpt ?? ''}
+  entry={entry}
+>
+  <h1 class="text-3xl font-semibold mb-2">{entry.data.title}</h1>
+  {entry.data.excerpt && <p class="prose prose-neutral max-w-none lg:prose-lg">{entry.data.excerpt}</p>}
+
+  <p class="inline-flex items-center rounded-md bg-gray-400/10 px-2 py-1 text-xs font-thin text-gray-600 mb-4">
+    {isoDate}
+  </p>
+
+  {tags.length > 0 && (
+    <div class="flex flex-wrap gap-2 mb-6">
+      {tags.map((tag) => (
+        <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-md font-medium">#{tag}</span>
+      ))}
+    </div>
+  )}
+
+  {/* Hero cover (Image component) */}
+  {cover && (
+    <div class="aspect-[16/9] overflow-hidden rounded-2xl bg-gray-50 mb-6">
+      <Image
+        src={cover}
+        alt={entry.data.title}
+        class="w-full h-full object-cover"
+        widths={[768, 1024, 1440]}
+        sizes="(max-width: 1024px) 100vw, 1024px"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </div>
+  )}
+
+  <article id="post-body" class="prose prose-neutral max-w-none lg:prose-xl">
+    <Content />
+  </article>
+
+  {/* Tiny client-side fix: rewrite /posts/filename.ext to the bundled URL */}
+  <script type="module">
+    const map = /** @type {Record<string,string>} */ (JSON.parse({JSON.stringify(urlMap)}));
+    const root = document.getElementById('post-body');
+    if (root) {
+      root.querySelectorAll('img[src^="/posts/"]').forEach((img) => {
+        const src = img.getAttribute('src');
+        if (!src) return;
+        const fname = src.split('/').pop().toLowerCase();
+        const url = map[fname];
+        if (url) img.src = url;
+      });
+    }
+  </script>
+
+  <Share postTitle={entry.data.title} postUrl={postUrl} />
+</Layout>

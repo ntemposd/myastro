@@ -1,22 +1,221 @@
+---
+import '../styles/global.css'; // ✅ Astro-native global CSS import
+
+const {
+  title = 'ntemposd',
+  description = 'Product Manager • Builder',
+  entry = null,
+} = Astro.props;
+
+const site = (Astro.site ?? Astro.url.origin).toString();
+
+function absUrl(maybeUrl) {
+  if (!maybeUrl) return null;
+  try {
+    return new URL(maybeUrl, site).toString();
+  } catch {
+    return null;
+  }
+}
+
+const ogImageUrl = entry?.data?.image ? absUrl(entry.data.image.src ?? entry.data.image) : null;
+const ogTitle = entry?.data?.title ?? title;
+const ogDesc = entry?.data?.excerpt ?? description;
+---
+
 <!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body>
-		<slot />
-	</body>
-</html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
 
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>
+    <!-- ✅ Open Graph / Twitter Meta -->
+    {
+      entry && (
+        <>
+          <meta property="og:type" content="article" />
+          <meta property="og:title" content={ogTitle} />
+          <meta property="og:description" content={ogDesc} />
+          {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
+
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content={ogTitle} />
+          <meta name="twitter:description" content={ogDesc} />
+          {ogImageUrl && <meta name="twitter:image" content={ogImageUrl} />}
+        </>
+      )
+    }
+
+    <!-- ✅ Set dark mode class before first paint -->
+    <script is:inline>
+      (() => {
+        try {
+          const saved = localStorage.getItem('theme'); // 'light' | 'dark' | null
+          const systemDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+          const theme = saved ?? (systemDark ? 'dark' : 'light');
+          const root = document.documentElement;
+          if (theme === 'dark') root.classList.add('dark');
+          else root.classList.remove('dark');
+          root.setAttribute('data-theme', theme);
+        } catch {}
+      })();
+    </script>
+  </head>
+
+  <body class="bg-white text-gray-900">
+    <!-- Dotted background overlay -->
+    <div class="dots-overlay" aria-hidden="true"></div>
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-gray-200">
+      <div class="max-w-5xl mx-auto h-16 px-4 flex items-center justify-between">
+        <!-- Brand -->
+        <a href="/" class="font-bold text-xl text-gray-900">ntemposd</a>
+
+        <!-- Desktop nav -->
+        <nav class="hidden md:flex items-center gap-6 text-sm">
+          <a href="/" class="hover:underline">Home</a>
+          <a href="/projects" class="hover:underline">Projects</a>
+          <a href="/writing" class="hover:underline">Writing</a>
+          <a href="/about" class="hover:underline">About</a>
+        </nav>
+
+        <!-- Controls: Theme toggle + mobile nav -->
+        <div class="flex items-center gap-2">
+          <!-- Theme toggle button -->
+          <button
+            class="theme-toggle inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
+            aria-label="Toggle dark mode"
+            title="Toggle dark mode"
+          >
+            <!-- Sun Icon -->
+            <svg class="icon-sun h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="4" stroke-width="1.5"></circle>
+              <path
+                stroke-width="1.5"
+                d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
+              ></path>
+            </svg>
+            <!-- Moon Icon -->
+            <svg class="icon-moon h-5 w-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-width="1.5" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+            </svg>
+          </button>
+
+          <!-- Mobile nav toggle -->
+          <button
+            id="nav-toggle"
+            class="md:hidden inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
+            aria-label="Open menu"
+            aria-controls="mobile-nav"
+            aria-expanded="false"
+          >
+            <svg id="icon-open" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7h16M4 12h16M4 17h16"></path>
+            </svg>
+            <svg id="icon-close" class="h-5 w-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Nav Panel -->
+      <nav id="mobile-nav" class="md:hidden hidden border-t border-gray-200 bg-white">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex flex-col gap-2 text-sm">
+          <a href="/" class="py-2">Home</a>
+          <a href="/projects" class="py-2">Projects</a>
+          <a href="/writing" class="py-2">Writing</a>
+          <a href="/about" class="py-2">About</a>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Page Content -->
+    <main class="max-w-5xl mx-auto px-4 py-10">
+      <slot />
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-200 py-6 text-center text-sm text-gray-500">
+      © {new Date().getFullYear()} ntemposd — built with <a href="https://astro.build" class="underline hover:text-gray-700">Astro</a> and <a href="https://notion.com" class="underline hover:text-gray-700">Notion</a>
+    </footer>
+
+    <!-- Scripts -->
+    <script is:raw>
+      // THEME TOGGLE
+      (() => {
+        const root = document.documentElement;
+        const toggles = document.querySelectorAll('.theme-toggle, #theme-toggle');
+
+        function setTheme(mode) {
+          if (mode === 'dark') root.classList.add('dark');
+          else root.classList.remove('dark');
+          root.setAttribute('data-theme', mode);
+          localStorage.setItem('theme', mode);
+          syncIcons();
+        }
+
+        function getTheme() {
+          const saved = localStorage.getItem('theme');
+          if (saved === 'light' || saved === 'dark') return saved;
+          return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+
+        function syncIcons() {
+          const isDark = root.classList.contains('dark');
+          toggles.forEach((btn) => {
+            btn.querySelector('.icon-moon')?.classList.toggle('hidden', isDark);
+            btn.querySelector('.icon-sun')?.classList.toggle('hidden', !isDark);
+          });
+        }
+
+        syncIcons();
+
+        toggles.forEach((btn) =>
+          btn.addEventListener('click', () => {
+            setTheme(getTheme() === 'dark' ? 'light' : 'dark');
+          })
+        );
+
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        mq.addEventListener?.('change', (e) => {
+          if (!localStorage.getItem('theme')) setTheme(e.matches ? 'dark' : 'light');
+        });
+      })();
+
+      // MOBILE NAV
+      (() => {
+        const btn = document.getElementById('nav-toggle');
+        const panel = document.getElementById('mobile-nav');
+        const iconOpen = document.getElementById('icon-open');
+        const iconClose = document.getElementById('icon-close');
+
+        btn?.addEventListener('click', () => {
+          const isOpen = panel.classList.toggle('hidden') === false;
+          btn.setAttribute('aria-expanded', String(isOpen));
+          iconOpen.classList.toggle('hidden', isOpen);
+          iconClose.classList.toggle('hidden', !isOpen);
+        });
+
+        panel?.querySelectorAll('a').forEach((a) => {
+          a.addEventListener('click', () => {
+            panel.classList.add('hidden');
+            btn?.setAttribute('aria-expanded', 'false');
+            iconOpen?.classList.remove('hidden');
+            iconClose?.classList.add('hidden');
+          });
+        });
+
+        const header = document.querySelector('header');
+        window.addEventListener('scroll', () => {
+          const y = window.scrollY || 0;
+          header?.classList.toggle('shadow-sm', y > 4);
+        });
+      })();
+    </script>
+  </body>
+</html>
