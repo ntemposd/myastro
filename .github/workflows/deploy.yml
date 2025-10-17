@@ -27,36 +27,13 @@ jobs:
 
       - run: npm ci
 
-      # Detect if Notion secrets are present
-      - name: Detect Notion secrets
-        id: notion
-        run: |
-          if [ -n "${{ secrets.NOTION_SECRET }}" ] || [ -n "${{ secrets.NOTION_TOKEN }}" ]; then
-            echo "has_notion=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_notion=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      # Export env for the build: either pass secrets or skip Notion sync
-      - name: Configure build env
-        run: |
-          if [ "${{ steps.notion.outputs.has_notion }}" = "true" ]; then
-            echo "Using Notion secrets in CI"
-            {
-              echo "NOTION_SECRET=${{ secrets.NOTION_SECRET }}"
-              echo "NOTION_TOKEN=${{ secrets.NOTION_TOKEN }}"
-              echo "NOTION_EXPERIENCE_DB=${{ secrets.NOTION_EXPERIENCE_DB }}"
-              echo "NOTION_EXPERIENCE_DB_ID=${{ secrets.NOTION_EXPERIENCE_DB_ID }}"
-              echo "NOTION_EXPERIENCE_DATA_SOURCE_ID=${{ secrets.NOTION_EXPERIENCE_DATA_SOURCE_ID }}"
-              # add other NOTION_* secrets here if your scripts need them
-            } >> "$GITHUB_ENV"
-          else
-            echo "No Notion secrets found — skipping Notion sync in CI"
-            echo "SKIP_NOTION=1" >> "$GITHUB_ENV"
-          fi
-
       - name: Build
         run: npm run build
+        env:
+          NOTION_SECRET: ${{ secrets.NOTION_SECRET }}
+          NOTION_EXPERIENCE_DB_ID: ${{ secrets.NOTION_EXPERIENCE_DB_ID }}
+          NOTION_POSTS_DB_ID: ${{ secrets.NOTION_POSTS_DB_ID }}
+          NOTION_PROJECTS_DB_ID: ${{ secrets.NOTION_PROJECTS_DB_ID }}
 
       - uses: actions/upload-pages-artifact@v3
         with:
