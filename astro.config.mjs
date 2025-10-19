@@ -1,9 +1,10 @@
-# myastro/astro.config.mjs
-import { defineConfig } from 'astro/config'
-import tailwind from '@astrojs/tailwind'
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import tailwind from '@astrojs/tailwind';
+
 export default defineConfig({
   site: 'https://ntemposd.github.io',
-  base: '/',            // root
+  base: '/',           // root
   output: 'static',
   integrations: [tailwind()],
-})
+});
